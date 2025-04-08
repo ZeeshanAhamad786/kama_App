@@ -1,6 +1,11 @@
+import 'dart:developer';
+
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:kama_app/Utils/Colors/Colors.dart';
 import 'package:kama_app/Utils/Constant/Constant.dart';
+import 'package:kama_app/View/Supervisor/supervisor_login_screen.dart';
 import 'package:responsive_sizer/responsive_sizer.dart';
 
 class CaretakerSettingScreen extends StatefulWidget {
@@ -52,13 +57,19 @@ class _CaretakerSettingScreenState extends State<CaretakerSettingScreen> {
               SizedBox(height: 2.h,),
               Divider(color: CustomColors.customLightGreyColor,),
               SizedBox(height: 2.h,),
-              Text(
-                "Logout",
-                style: TextStyle(
-                    fontSize: 13,
-                    fontFamily: MyConstants.regularFontFamily,
-                    fontWeight: FontWeight.w400,
-                    color: CustomColors.customBlackColor),
+              GestureDetector(onTap: () async{
+                await  FirebaseAuth.instance.signOut();
+                log("signOut");
+                Get.offAll(()=>SupervisorLoginScreen());
+              },
+                child: Text(
+                  "Logout",
+                  style: TextStyle(
+                      fontSize: 13,
+                      fontFamily: MyConstants.regularFontFamily,
+                      fontWeight: FontWeight.w400,
+                      color: CustomColors.customBlackColor),
+                ),
               ),
               SizedBox(height: 2.h,),
               Divider(color: CustomColors.customLightGreyColor,)

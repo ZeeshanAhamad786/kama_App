@@ -42,7 +42,7 @@ class CustomTextField extends StatelessWidget {
           ),
           child: TextFormField(controller: controller,
             cursorColor: CustomColors.mainAppColor,
-            keyboardType: keyboardType,
+            keyboardType: keyboardType,style: TextStyle(fontSize: 12,fontFamily: MyConstants.regularFontFamily),
             decoration: InputDecoration(
               contentPadding: EdgeInsets.all(10),
               filled: true,

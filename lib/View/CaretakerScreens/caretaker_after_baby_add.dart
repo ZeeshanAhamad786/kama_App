@@ -1,14 +1,86 @@
+import 'dart:developer';
+
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import 'package:kama_app/Utils/Constant/Constant.dart';
+import 'package:kama_app/View/CaretakerScreens/caretaker_home_screen.dart';
+
 import 'package:responsive_sizer/responsive_sizer.dart';
 
 import '../../Utils/Colors/Colors.dart';
+import '../../ViewModel/Care_taker/baby_controller.dart';
+import '../../ViewModel/Care_taker/caretaker_addcomment_controller.dart';
+import '../../ViewModel/Care_taker/patient_personal_details_controller.dart';
+import '../../ViewModel/Care_taker/sign_up_caretaker_controller.dart';
+import '../../ViewModel/Supervisor/sign_up_controller.dart';
+import '../../ViewModel/Supervisor/supervisor_comment_controller.dart';
+import '../BottomNavigationBar/caretaker_bottom_navigation_screen.dart';
+import '../Widgets/custom_textfield_medical.dart';
 
 class CaretakerAfterBabyAddScreen extends StatefulWidget {
-  CaretakerAfterBabyAddScreen({super.key});
+  final String? userName;
+  final String? userInitial;
+  final String? userLastPeriod;
+  final String? userPreviousPregnancies;
+  final String? userVaginalDelivery;
+  final String? userMaritalStatus;
+  final String? userLevelOfEducation;
+  final String? userReligion;
+  final String? userSourceOfIncome;
+  final String? userAge;
+  final String? userEthnicity;
+  final String? userMedicalCondition;
+  final String? userNoOfChildrenAndYearOfDelivery;
+  final String? selectedDate;
+  final String? estimatedGestationalAge;
+  final String? sFH;
+  final String? fetalHeartRate;
+  final String? weight;
+  final String? height;
+  final String? bMI;
+  final String? bP;
+  final String? urineTest;
+  final String? glucoseLevel;
+  final String? bloodLevel;
+  final String? temperature;
+  final String? tTAndiPT;
+  final String? patientId;
+  final String? title;
+
+  CaretakerAfterBabyAddScreen(
+      {super.key,
+      this.userName,
+      this.userInitial,
+      this.userLastPeriod,
+      this.userPreviousPregnancies,
+      this.userVaginalDelivery,
+      this.userMaritalStatus,
+      this.userLevelOfEducation,
+      this.userReligion,
+      this.userSourceOfIncome,
+      this.userAge,
+      this.userEthnicity,
+      this.userMedicalCondition,
+      this.userNoOfChildrenAndYearOfDelivery,
+      this.selectedDate,
+      this.estimatedGestationalAge,
+      this.sFH,
+      this.fetalHeartRate,
+      this.weight,
+      this.height,
+      this.bMI,
+      this.bP,
+      this.urineTest,
+      this.glucoseLevel,
+      this.bloodLevel,
+      this.temperature,
+      this.tTAndiPT,
+      this.patientId,
+        this.title,
+      });
 
   @override
   State<CaretakerAfterBabyAddScreen> createState() =>
@@ -17,6 +89,8 @@ class CaretakerAfterBabyAddScreen extends StatefulWidget {
 
 class _CaretakerAfterBabyAddScreenState
     extends State<CaretakerAfterBabyAddScreen> {
+  final SupervisorAddCommentController superVisoraddCommentControllerTab1 =
+  Get.find(tag: 'supervisorAddCommentController');
   List<String> personalQuestions = [
     'Name',
     'Initials',
@@ -30,17 +104,20 @@ class _CaretakerAfterBabyAddScreenState
     'Any known medical condition',
     'No of children and year of delivery',
   ];
+  final SignUpController signUpController = Get.find(tag: 'signUpController');
+  SignUPCaretakerController signUPCaretakerController =Get.find(tag: "signUPCaretakerController");
+
 
   List<String> medicalQuestions = [
     'Date',
     'Estimated Gestational Age',
     'SFH',
-    'Fatal Heart Rate (FHR)',
+    'Fetal Heart Rate (FHR)',
     'Weight',
     'Height',
     'BMI',
     'BP',
-    'Urine Test',
+    'Urine test',
     'Glucose level',
     'Blood level',
     'Temperature',
@@ -58,29 +135,8 @@ class _CaretakerAfterBabyAddScreenState
     "12 months Vitamin A2",
   ];
 
-  List<String> personalAnswer = [
-    'Answer',
-  ];
 
-  List<String> medicalAnswer = [
-    'Answer',
-  ];
 
-  List<String> svg = [
-    'assets/svg/1image.svg',
-    'assets/svg/2image.svg',
-    'assets/svg/3image.svg',
-    'assets/svg/4image.svg',
-    'assets/svg/5image.svg',
-    'assets/svg/6image.svg',
-    'assets/svg/7image.svg',
-    'assets/svg/8image.svg',
-    'assets/svg/9image.svg',
-    'assets/svg/10ten.svg',
-    'assets/svg/10image.svg',
-    'assets/svg/11image.svg',
-    'assets/svg/12image.svg'
-  ];
 
   var chatList = [].obs;
 
@@ -104,6 +160,25 @@ class _CaretakerAfterBabyAddScreenState
   RxBool isTab3 = false.obs;
 
   FocusNode focusNode = FocusNode();
+  PatientPersonalDetailsController patientPersonalDetailsController =
+      Get.find(tag: "patientPersonalDetailsController");
+  BabyModelController babyModelController =
+      Get.find(tag: "babyModelController");
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    babyModelController.getBabyData(widget.patientId);
+    // String formattedDate = DateFormat('yyyy-MM-dd').format();
+  }
+  AddCommentController addCommentController=Get.find(tag: 'addCommentController');
+
+  String _formatTimestamp(var timestamp) {
+    if (timestamp == null) return ""; // Return empty string if timestamp is null
+    DateTime dateTime = timestamp.toDate(); // Convert Firestore Timestamp to DateTime
+    return DateFormat('yyyy-MM-dd').format(dateTime); // Format DateTime object
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -116,21 +191,33 @@ class _CaretakerAfterBabyAddScreenState
             centerTitle: true,
             leading: IconButton(
                 onPressed: () {
-                  Navigator.pop(context);
+                  Get.to(CaretakerHomeScreen());
                 },
                 icon: Icon(
                   Icons.arrow_back_ios,
                   color: const Color(0xffFFFFFF),
                   size: 3.h,
                 )),
-            title: const Text(
-              'Ali',
+            title: Text(
+              widget.userName.toString(),
               style: TextStyle(
-                  fontSize: 16,
-                  fontFamily: MyConstants.boldFontFamily,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white),
+                fontSize: 16,
+                fontFamily: MyConstants.boldFontFamily,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
             ),
+            actions: [
+              GestureDetector(onTap: () {
+                showMyDialog();
+              },
+                child: Text("Discharge", style: TextStyle(fontSize: 15,
+                    fontFamily: MyConstants.boldFontFamily,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white),),
+              ),
+              SizedBox(width: 2.h,)
+            ],
           ),
           body: Column(
             mainAxisAlignment: MainAxisAlignment.start,
@@ -214,66 +301,70 @@ class _CaretakerAfterBabyAddScreenState
                               SizedBox(
                                 height: 1.h,
                               ),
-                              ListView.builder(
-                                  physics: const NeverScrollableScrollPhysics(),
-                                  itemCount: personalQuestions.length,
-                                  shrinkWrap: true,
-                                  itemBuilder: (context, index) {
-                                    return Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          personalQuestions[index],
-                                          style: TextStyle(
-                                              fontFamily:
-                                                  MyConstants.mediumFontFamily,
-                                              color:
-                                                  CustomColors.customBlackColor,
-                                              fontSize: 10.px,
-                                              fontWeight: FontWeight.w500),
-                                        ),
-                                        SizedBox(
-                                          height: 0.5.h,
-                                        ),
-                                        Text(
-                                          personalAnswer[0],
-                                          style: TextStyle(
-                                              fontFamily:
-                                                  MyConstants.mediumFontFamily,
-                                              color: CustomColors
-                                                  .customDarkBlackColor,
-                                              fontSize: 10.px,
-                                              fontWeight: FontWeight.w400,
-                                              overflow: TextOverflow.ellipsis),
-                                        ),
-                                        SizedBox(
-                                          height: 1.h,
-                                        ),
-                                        index == 10
-                                            ? const SizedBox.shrink()
-                                            : const Divider(
-                                                color: Color(0xffBFBFBF),
-                                              ),
-                                        index == 10
-                                            ? SizedBox(
-                                                height: 2.h,
-                                              )
-                                            : SizedBox(
-                                                height: 1.h,
-                                              ),
-                                      ],
-                                    );
-                                  }),
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  CustomPatientWidget(
+                                      label: 'Name', answer: widget.userName),
+                                  CustomPatientWidget(
+                                      label: 'Initials',
+                                      answer: widget.userInitial ?? ""),
+                                  CustomPatientWidget(
+                                      label:
+                                          'Last period(First day), full date',
+                                      answer: widget.userLastPeriod ?? ""),
+                                  CustomPatientWidget(
+                                      label: 'Previous pregnancies',
+                                      answer:
+                                          widget.userPreviousPregnancies ?? ""),
+                                  CustomPatientWidget(
+                                      label:
+                                          'Mode of deliveries (vaginal delivery or operative delivery)',
+                                      answer: widget.userVaginalDelivery ?? ""),
+                                  CustomPatientWidget(
+                                      label: 'Marital status',
+                                      answer: widget.userMaritalStatus ?? ""),
+                                  CustomPatientWidget(
+                                      label: 'Level of education',
+                                      answer:
+                                          widget.userLevelOfEducation ?? ""),
+                                  CustomPatientWidget(
+                                      label: 'Religion and source of income',
+                                      answer: widget
+                                              .userReligion ??
+                                          ""),
+                                  CustomPatientWidget(
+                                      label: 'Source of income',
+                                      answer: widget
+                                          .userSourceOfIncome ??
+                                          ""),
+                                  CustomPatientWidget(
+                                      label: 'Age',
+                                      answer: widget
+                                          .userAge ??
+                                          ""),
+                                  CustomPatientWidget(
+                                      label: 'Ethnicity',
+                                      answer: widget.userEthnicity ?? ""),
+                                  CustomPatientWidget(
+                                      label: 'Any known medical condition',
+                                      answer:
+                                          widget.userMedicalCondition ?? ""),
+                                  CustomPatientWidget(
+                                      label:
+                                          'No of children and year of delivery',
+                                      answer: widget
+                                              .userNoOfChildrenAndYearOfDelivery ??
+                                          ""),
+                                ],
+                              ),
                               Container(
                                 decoration: BoxDecoration(
-                                  borderRadius:
-                                      BorderRadiusDirectional.circular(8),
+                                  borderRadius: BorderRadiusDirectional.circular(8),
                                   color: const Color(0xffFFFFFF),
                                   boxShadow: [
                                     BoxShadow(
-                                      color: const Color(0xff000000)
-                                          .withOpacity(0.15),
+                                      color: const Color(0xff000000).withOpacity(0.15),
                                       blurRadius: 4,
                                       offset: const Offset(0, 1),
                                     ),
@@ -282,12 +373,11 @@ class _CaretakerAfterBabyAddScreenState
                                 child: Padding(
                                   padding: isTab1.value == true
                                       ? EdgeInsets.symmetric(
-                                          horizontal: 1.5.w, vertical: 1.5.h)
+                                      horizontal: 1.5.w, vertical: 1.5.h)
                                       : EdgeInsets.symmetric(
-                                          horizontal: 1.5.w, vertical: 1.h),
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
+                                      horizontal: 1.5.w, vertical: 1.h),
+                                  child:widget.title=='Admin'?SizedBox.shrink(): Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
                                     mainAxisAlignment: MainAxisAlignment.center,
                                     children: [
                                       InkWell(
@@ -302,19 +392,20 @@ class _CaretakerAfterBabyAddScreenState
                                           children: [
                                             isTab1.value
                                                 ? SvgPicture.asset(
-                                                    'assets/svg/circleminus.svg')
+                                                'assets/svg/circleminus.svg')
                                                 : SvgPicture.asset(
-                                                    'assets/svg/circle.svg'),
+                                                'assets/svg/circle.svg'),
                                             SizedBox(
                                               width: 1.w,
                                             ),
                                             Text(
                                               'Comment',
                                               style: TextStyle(
+                                                  fontFamily:
+                                                  MyConstants.mediumFontFamily,
                                                   fontSize: 13.px,
                                                   fontWeight: FontWeight.w500,
-                                                  color:
-                                                      const Color(0xff837AE8)),
+                                                  color: const Color(0xff9086FF)),
                                             ),
                                           ],
                                         ),
@@ -322,211 +413,200 @@ class _CaretakerAfterBabyAddScreenState
                                       Padding(
                                         padding: isTab1.value == true
                                             ? EdgeInsets.symmetric(
-                                                horizontal: 1.w, vertical: 1.h)
+                                            horizontal: 1.w, vertical: 1.h)
                                             : EdgeInsets.symmetric(
-                                                horizontal: 1.w, vertical: 0),
+                                            horizontal: 1.w, vertical: 0),
                                         child: const Divider(
-                                          color: Color(0xff707070),
+                                          color: CustomColors.customGreyBoldColor,
                                         ),
                                       ),
                                       // isPressed.value==true?
                                       isTab1.value == true
                                           ? ListView.builder(
-                                              shrinkWrap: true,
-                                              itemCount: chatList.length,
-                                              itemBuilder: (context, index) {
-                                                return Column(
-                                                  crossAxisAlignment:
-                                                      CrossAxisAlignment.start,
-                                                  children: [
-                                                    Container(
-                                                      alignment:
-                                                          Alignment.center,
-                                                      decoration: BoxDecoration(
-                                                        borderRadius:
-                                                            const BorderRadius
-                                                                .only(
-                                                          topLeft:
-                                                              Radius.circular(
-                                                                  12),
-                                                          topRight:
-                                                              Radius.circular(
-                                                                  12),
-                                                        ),
-                                                        color: const Color(
-                                                            0xffFFFFFF),
-                                                        boxShadow: [
-                                                          BoxShadow(
-                                                            color: const Color(
-                                                                    0xff000000)
-                                                                .withOpacity(
-                                                                    0.15),
-                                                            blurRadius: 8,
-                                                            offset:
-                                                                const Offset(
-                                                                    0, 1),
-                                                          ),
-                                                        ],
-                                                      ),
-                                                      margin: EdgeInsets.only(
-                                                          right: 1.w,
-                                                          left: 11.9.w,
-                                                          top: 1.h),
-                                                      child: Padding(
-                                                        padding: EdgeInsets
-                                                            .symmetric(
-                                                                horizontal: 1.w,
-                                                                vertical: 1.h),
-                                                        child: Text(
-                                                          chatList[index],
-                                                          style: TextStyle(
-                                                              fontSize: 10.px),
-                                                        ),
-                                                      ),
-                                                    ),
-                                                    Container(
-                                                      alignment:
-                                                          Alignment.centerLeft,
-                                                      decoration: BoxDecoration(
-                                                        borderRadius:
-                                                            const BorderRadius
-                                                                .only(
-                                                          bottomLeft:
-                                                              Radius.circular(
-                                                                  12),
-                                                          bottomRight:
-                                                              Radius.circular(
-                                                                  12),
-                                                        ),
-                                                        color: const Color(
-                                                            0xffFFFFFF),
-                                                        boxShadow: [
-                                                          BoxShadow(
-                                                            color: const Color(
-                                                                    0xff000000)
-                                                                .withOpacity(
-                                                                    0.15),
-                                                            blurRadius: 8,
-                                                            offset:
-                                                                const Offset(
-                                                                    0, 1),
-                                                          ),
-                                                        ],
-                                                      ),
-                                                      margin: EdgeInsets.only(
-                                                          right: 1.w,
-                                                          left: 11.9.w,
-                                                          top: .2.h),
-                                                      child: Padding(
-                                                        padding: EdgeInsets
-                                                            .symmetric(
-                                                                horizontal:
-                                                                    1.5.w,
-                                                                vertical: .5.h),
-                                                        child: Text(
-                                                          'Caretaker',
-                                                          style: TextStyle(
-                                                              fontSize: 10.px,
-                                                              color: const Color(
-                                                                  0xff9086FF)),
-                                                        ),
-                                                      ),
-                                                    ),
-                                                    SizedBox(
-                                                      height: 1.h,
-                                                    ),
-                                                    SizedBox(
-                                                      height: 1.4.h,
-                                                    ),
-                                                  ],
-                                                );
-                                              },
-                                            )
-                                          : SizedBox.shrink(),
-                                      isTab1.value == true
-                                          ? Container(
-                                              alignment: Alignment.centerLeft,
-                                              height: 5.h,
-                                              decoration: BoxDecoration(
-                                                borderRadius:
-                                                    BorderRadius.circular(8),
-                                                color: const Color(0xffFFFFFF),
-                                                boxShadow: [
-                                                  BoxShadow(
-                                                    color:
-                                                        const Color(0xff000000)
-                                                            .withOpacity(0.12),
-                                                    blurRadius: 8,
-                                                    offset: const Offset(0, 1),
+                                        shrinkWrap: true,
+                                        itemCount:superVisoraddCommentControllerTab1
+                                            .CommentList.length,
+                                        itemBuilder: (context, index) {
+                                          return Column(
+                                            crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                            children: [
+                                              Container(
+                                                alignment: Alignment.center,
+                                                decoration: BoxDecoration(
+                                                  borderRadius:
+                                                  const BorderRadius.only(
+                                                    topLeft: Radius.circular(12),
+                                                    topRight: Radius.circular(12),
                                                   ),
-                                                ],
-                                              ),
-                                              child: Padding(
-                                                padding: EdgeInsets.symmetric(
-                                                    horizontal: 1.5.w,
-                                                    vertical: 1.h),
-                                                child: Row(
-                                                  children: [
-                                                    Expanded(
-                                                      child: TextFormField(
-                                                          keyboardType:
-                                                              TextInputType
-                                                                  .text,
-                                                          controller:
-                                                              messageControllerTab1,
-                                                          style:
-                                                              TextStyle(
-                                                                  fontSize:
-                                                                      13.px),
-                                                          // focusNode: focusNode,
-                                                          autofocus: true,
-                                                          decoration: InputDecoration(
-                                                              border:
-                                                                  InputBorder
-                                                                      .none,
-                                                              hintText:
-                                                                  'Write message...',
-                                                              hintStyle: TextStyle(
-                                                                  fontSize:
-                                                                      10.px,
-                                                                  color: const Color(
-                                                                      0xff757575)))),
+                                                  color: const Color(0xffFFFFFF),
+                                                  boxShadow: [
+                                                    BoxShadow(
+                                                      color: const Color(0xff000000)
+                                                          .withOpacity(0.15),
+                                                      blurRadius: 8,
+                                                      offset: const Offset(0, 1),
                                                     ),
-                                                    InkWell(
-                                                      onTap: () {
-                                                        chatList.add(
-                                                            messageControllerTab1
-                                                                .text);
-                                                        messageControllerTab1
-                                                            .clear();
-                                                      },
-                                                      child: Container(
-                                                        decoration: BoxDecoration(
-                                                            color: const Color(
-                                                                0xffA69EFF),
-                                                            borderRadius:
-                                                                BorderRadius
-                                                                    .circular(
-                                                                        8)),
-                                                        height: 2.8.h,
-                                                        width: 14.w,
-                                                        child: Center(
-                                                          child: Text(
-                                                            'Send',
-                                                            style: TextStyle(
-                                                                color: Colors
-                                                                    .white,
-                                                                fontSize: 10.px,
-                                                                fontWeight:
-                                                                    FontWeight
-                                                                        .w400),
-                                                          ),
-                                                        ),
-                                                      ),
-                                                    )
                                                   ],
                                                 ),
-                                              ))
+                                                margin: EdgeInsets.only(
+                                                    right: 1.w,
+                                                    left: 11.9.w,
+                                                    top: 1.h),
+                                                child: Padding(
+                                                  padding: EdgeInsets.symmetric(
+                                                      horizontal: 1.w,
+                                                      vertical: 1.h),
+                                                  child: Text(
+                                                    superVisoraddCommentControllerTab1.CommentList[index],
+                                                    style:
+                                                    TextStyle(fontSize: 10.px),
+                                                  ),
+                                                ),
+                                              ),
+                                              Container(
+                                                alignment: Alignment.centerLeft,
+                                                decoration: BoxDecoration(
+                                                  borderRadius:
+                                                  const BorderRadius.only(
+                                                    bottomLeft: Radius.circular(12),
+                                                    bottomRight:
+                                                    Radius.circular(12),
+                                                  ),
+                                                  color: const Color(0xffFFFFFF),
+                                                  boxShadow: [
+                                                    BoxShadow(
+                                                      color: const Color(0xff000000)
+                                                          .withOpacity(0.15),
+                                                      blurRadius: 8,
+                                                      offset: const Offset(0, 1),
+                                                    ),
+                                                  ],
+                                                ),
+                                                margin: EdgeInsets.only(
+                                                    right: 1.w,
+                                                    left: 11.9.w,
+                                                    top: .2.h),
+                                                child: Padding(
+                                                  padding: EdgeInsets.symmetric(
+                                                      horizontal: 1.5.w,
+                                                      vertical: .5.h),
+                                                  child: Text(
+                                                    superVisoraddCommentControllerTab1.senderNameList[index],
+                                                    style: TextStyle(
+                                                        fontFamily: MyConstants
+                                                            .mediumFontFamily,
+                                                        fontSize: 10.px,
+                                                        color: const Color(
+                                                            0xff9086FF)),
+                                                  ),
+                                                ),
+                                              ),
+                                              SizedBox(
+                                                height: 1.h,
+                                              ),
+                                              SizedBox(
+                                                height: 1.4.h,
+                                              ),
+                                            ],
+                                          );
+                                        },
+                                      )
+                                          : const SizedBox.shrink(),
+                                      isTab1.value == true
+                                          ? Container(
+                                          alignment: Alignment.centerLeft,
+                                          height: 5.h,
+                                          decoration: BoxDecoration(
+                                            borderRadius: BorderRadius.circular(8),
+                                            color: const Color(0xffFFFFFF),
+                                            boxShadow: [
+                                              BoxShadow(
+                                                color: const Color(0xff000000)
+                                                    .withOpacity(0.12),
+                                                blurRadius: 8,
+                                                offset: const Offset(0, 1),
+                                              ),
+                                            ],
+                                          ),
+                                          child: Padding(
+                                            padding: EdgeInsets.symmetric(
+                                                horizontal: 1.5.w, vertical: 1.h),
+                                            child: Row(
+                                              children: [
+                                                Expanded(
+                                                  child: TextFormField(
+                                                      keyboardType:
+                                                      TextInputType.text,
+                                                      controller:addCommentController.addCommentControllerTab1
+                                                      ,
+                                                      style:
+                                                      TextStyle(fontSize: 13.px),
+                                                      // focusNode: focusNode,
+                                                      autofocus: true,
+                                                      decoration: InputDecoration(
+                                                          border: InputBorder.none,
+                                                          hintText:
+                                                          'Write message...',
+                                                          hintStyle: TextStyle(
+                                                              fontFamily: MyConstants
+                                                                  .regularFontFamily,
+                                                              fontSize: 10.px,
+                                                              fontWeight:
+                                                              FontWeight.w400,
+                                                              color: CustomColors
+                                                                  .customLightGreyColor))),
+                                                ),
+                                                InkWell(
+                                                  onTap: () {
+                                                    log('This is SuperVisor Name ${ signUpController.superVisorName}');
+                                                    log('This is superVisorId ${ signUpController.superVisorId}');
+                                                    if(widget.title=='SuperVisor'){
+                                                      addCommentController.addCommentToFireStore(
+                                                          signUpController.superVisorName,
+                                                          signUpController.superVisorId,
+                                                          addCommentController.addCommentControllerTab1.text,
+                                                          widget.patientId
+                                                      );
+                                                      superVisoraddCommentControllerTab1.getSenderData(widget.patientId);
+
+                                                    }else{
+                                                      addCommentController.addCommentToFireStore(
+                                                          signUPCaretakerController.careTakerName,
+                                                          signUPCaretakerController.careTakerId,
+                                                          addCommentController.addCommentControllerTab1.text,
+                                                          widget.patientId
+                                                      );
+                                                      superVisoraddCommentControllerTab1.getSenderData(widget.patientId);
+
+                                                    }
+
+                                                  },
+                                                  child: Container(
+                                                    decoration: BoxDecoration(
+                                                        color:
+                                                        const Color(0xffA69EFF),
+                                                        borderRadius:
+                                                        BorderRadius.circular(8)),
+                                                    height: 3.h,
+                                                    width: 6.h,
+                                                    child: Center(
+                                                      child: Text(
+                                                        'Send',
+                                                        style: TextStyle(
+                                                            fontFamily: MyConstants
+                                                                .regularFontFamily,
+                                                            color: Colors.white,
+                                                            fontSize: 10.px,
+                                                            fontWeight:
+                                                            FontWeight.w400),
+                                                      ),
+                                                    ),
+                                                  ),
+                                                )
+                                              ],
+                                            ),
+                                          ))
                                           : SizedBox.shrink(),
                                     ],
                                   ),
@@ -639,320 +719,320 @@ class _CaretakerAfterBabyAddScreenState
                               SizedBox(
                                 height: 1.h,
                               ),
-                              ListView.builder(
-                                  physics: const NeverScrollableScrollPhysics(),
-                                  itemCount: medicalQuestions.length,
-                                  shrinkWrap: true,
-                                  itemBuilder: (context, index) {
-                                    return Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          medicalQuestions[index],
-                                          style: TextStyle(
-                                              fontSize: 10.px,
-                                              fontWeight: FontWeight.w500),
-                                        ),
-                                        SizedBox(
-                                          height: 0.5.h,
-                                        ),
-                                        Row(
-                                          children: [
-                                            SvgPicture.asset(svg[index]),
-                                            SizedBox(
-                                              width: 1.w,
-                                            ),
-                                            Text(
-                                              medicalAnswer[0],
-                                              style: TextStyle(
-                                                  fontSize: 10.px,
-                                                  fontWeight: FontWeight.w400,
-                                                  overflow:
-                                                      TextOverflow.ellipsis),
-                                            ),
-                                          ],
-                                        ),
-                                        SizedBox(
-                                          height: 1.h,
-                                        ),
-                                        index == 10
-                                            ? const SizedBox.shrink()
-                                            : const Divider(
-                                                color: Color(0xffBFBFBF),
-                                              ),
-                                        index == 10
-                                            ? SizedBox(
-                                                height: 2.h,
-                                              )
-                                            : SizedBox(
-                                                height: 1.h,
-                                              ),
-                                      ],
-                                    );
-                                  }),
+                              CustomPatientMedicalWidget(
+                                labelName: "Date",
+                                tabImage: "assets/svg/1image.svg",
+                                titleText: widget.selectedDate,
+                              ),
+                              CustomPatientMedicalWidget(
+                                labelName: "Estimated Gestational Age",
+                                tabImage: "assets/svg/2image.svg",
+                                titleText: widget.estimatedGestationalAge,
+                              ),
+                              CustomPatientMedicalWidget(
+                                labelName: "SFH",
+                                tabImage: "assets/svg/3image.svg",
+                                titleText: widget.sFH,
+                              ),
+                              CustomPatientMedicalWidget(
+                                labelName: "Fetal Heart Rate (FHR)",
+                                tabImage: "assets/svg/4image.svg",
+                                titleText: widget.fetalHeartRate,
+                              ),
+                              CustomPatientMedicalWidget(
+                                labelName: "Weight",
+                                tabImage: "assets/svg/5image.svg",
+                                titleText: widget.weight,
+                              ),
+                              CustomPatientMedicalWidget(
+                                labelName: "Height",
+                                tabImage: "assets/svg/6image.svg",
+                                titleText: widget.height,
+                              ),
+                              CustomPatientMedicalWidget(
+                                labelName: "BMI",
+                                tabImage: "assets/svg/7image.svg",
+                                titleText: widget.bMI,
+                              ),
+                              CustomPatientMedicalWidget(
+                                labelName: "BP",
+                                tabImage: "assets/svg/8image.svg",
+                                titleText: widget.bP,
+                              ),
+                              CustomPatientMedicalWidget(
+                                labelName: "Urine test",
+                                tabImage: "assets/svg/9image.svg",
+                                titleText: widget.urineTest,
+                              ),
+                              CustomPatientMedicalWidget(
+                                labelName: "Glucose level",
+                                tabImage: "assets/svg/10ten.svg",
+                                titleText: widget.glucoseLevel,
+                              ),
+                              CustomPatientMedicalWidget(
+                                labelName: "Blood level",
+                                tabImage: "assets/svg/10image.svg",
+                                titleText: widget.bloodLevel,
+                              ),
+                              CustomPatientMedicalWidget(
+                                labelName: "Temperature",
+                                tabImage: "assets/svg/11image.svg",
+                                titleText: widget.temperature,
+                              ),
+                              CustomPatientMedicalWidget(
+                                labelName: "TT & IPT",
+                                tabImage: "assets/svg/12image.svg",
+                                titleText: widget.tTAndiPT,
+                              ),
                               Container(
                                 decoration: BoxDecoration(
-                                  borderRadius:
-                                      BorderRadiusDirectional.circular(8),
+                                  borderRadius: BorderRadiusDirectional.circular(8),
                                   color: const Color(0xffFFFFFF),
                                   boxShadow: [
                                     BoxShadow(
-                                      color: const Color(0xff000000)
-                                          .withOpacity(0.15),
+                                      color: const Color(0xff000000).withOpacity(0.15),
                                       blurRadius: 4,
                                       offset: const Offset(0, 1),
                                     ),
                                   ],
                                 ),
                                 child: Padding(
-                                  padding: isTab2.value == true
+                                  padding: isTab1.value == true
                                       ? EdgeInsets.symmetric(
-                                          horizontal: 1.5.w, vertical: 1.5.h)
+                                      horizontal: 1.5.w, vertical: 1.5.h)
                                       : EdgeInsets.symmetric(
-                                          horizontal: 1.5.w, vertical: 1.h),
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
+                                      horizontal: 1.5.w, vertical: 1.h),
+                                  child:widget.title=='Admin'?SizedBox.shrink(): Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
                                     mainAxisAlignment: MainAxisAlignment.center,
                                     children: [
                                       InkWell(
                                         onTap: () {
-                                          if (isTab2.value == true) {
-                                            isTab2.value = false;
+                                          if (isTab1.value == true) {
+                                            isTab1.value = false;
                                           } else {
-                                            isTab2.value = true;
+                                            isTab1.value = true;
                                           }
                                         },
                                         child: Row(
                                           children: [
-                                            isTab2.value
+                                            isTab1.value
                                                 ? SvgPicture.asset(
-                                                    'assets/svg/circleminus.svg')
+                                                'assets/svg/circleminus.svg')
                                                 : SvgPicture.asset(
-                                                    'assets/svg/circle.svg'),
+                                                'assets/svg/circle.svg'),
                                             SizedBox(
                                               width: 1.w,
                                             ),
                                             Text(
                                               'Comment',
                                               style: TextStyle(
+                                                  fontFamily:
+                                                  MyConstants.mediumFontFamily,
                                                   fontSize: 13.px,
                                                   fontWeight: FontWeight.w500,
-                                                  color:
-                                                      const Color(0xff837AE8)),
+                                                  color: const Color(0xff9086FF)),
                                             ),
                                           ],
                                         ),
                                       ),
                                       Padding(
-                                        padding: isTab2.value == true
+                                        padding: isTab1.value == true
                                             ? EdgeInsets.symmetric(
-                                                horizontal: 1.w, vertical: 1.h)
+                                            horizontal: 1.w, vertical: 1.h)
                                             : EdgeInsets.symmetric(
-                                                horizontal: 1.w, vertical: 0),
+                                            horizontal: 1.w, vertical: 0),
                                         child: const Divider(
-                                          color: Color(0xff707070),
+                                          color: CustomColors.customGreyBoldColor,
                                         ),
                                       ),
                                       // isPressed.value==true?
-                                      isTab2.value == true
+                                      isTab1.value == true
                                           ? ListView.builder(
-                                              shrinkWrap: true,
-                                              itemCount: chatList.length,
-                                              itemBuilder: (context, index) {
-                                                return Column(
-                                                  crossAxisAlignment:
-                                                      CrossAxisAlignment.start,
-                                                  children: [
-                                                    Container(
-                                                      alignment:
-                                                          Alignment.center,
-                                                      decoration: BoxDecoration(
-                                                        borderRadius:
-                                                            const BorderRadius
-                                                                .only(
-                                                          topLeft:
-                                                              Radius.circular(
-                                                                  12),
-                                                          topRight:
-                                                              Radius.circular(
-                                                                  12),
-                                                        ),
-                                                        color: const Color(
-                                                            0xffFFFFFF),
-                                                        boxShadow: [
-                                                          BoxShadow(
-                                                            color: const Color(
-                                                                    0xff000000)
-                                                                .withOpacity(
-                                                                    0.15),
-                                                            blurRadius: 8,
-                                                            offset:
-                                                                const Offset(
-                                                                    0, 1),
-                                                          ),
-                                                        ],
-                                                      ),
-                                                      margin: EdgeInsets.only(
-                                                          right: 1.w,
-                                                          left: 11.9.w,
-                                                          top: 1.h),
-                                                      child: Padding(
-                                                        padding: EdgeInsets
-                                                            .symmetric(
-                                                                horizontal: 1.w,
-                                                                vertical: 1.h),
-                                                        child: Text(
-                                                          chatList[index],
-                                                          style: TextStyle(
-                                                              fontSize: 10.px),
-                                                        ),
-                                                      ),
-                                                    ),
-                                                    Container(
-                                                      alignment:
-                                                          Alignment.centerLeft,
-                                                      decoration: BoxDecoration(
-                                                        borderRadius:
-                                                            const BorderRadius
-                                                                .only(
-                                                          bottomLeft:
-                                                              Radius.circular(
-                                                                  12),
-                                                          bottomRight:
-                                                              Radius.circular(
-                                                                  12),
-                                                        ),
-                                                        color: const Color(
-                                                            0xffFFFFFF),
-                                                        boxShadow: [
-                                                          BoxShadow(
-                                                            color: const Color(
-                                                                    0xff000000)
-                                                                .withOpacity(
-                                                                    0.15),
-                                                            blurRadius: 8,
-                                                            offset:
-                                                                const Offset(
-                                                                    0, 1),
-                                                          ),
-                                                        ],
-                                                      ),
-                                                      margin: EdgeInsets.only(
-                                                          right: 1.w,
-                                                          left: 11.9.w,
-                                                          top: .2.h),
-                                                      child: Padding(
-                                                        padding: EdgeInsets
-                                                            .symmetric(
-                                                                horizontal:
-                                                                    1.5.w,
-                                                                vertical: .5.h),
-                                                        child: Text(
-                                                          'Caretaker',
-                                                          style: TextStyle(
-                                                              fontSize: 10.px,
-                                                              color: const Color(
-                                                                  0xff9086FF)),
-                                                        ),
-                                                      ),
-                                                    ),
-                                                    SizedBox(
-                                                      height: 1.h,
-                                                    ),
-                                                    SizedBox(
-                                                      height: 1.4.h,
-                                                    ),
-                                                  ],
-                                                );
-                                              },
-                                            )
-                                          : const SizedBox.shrink(),
-                                      isTab2.value == true
-                                          ? Container(
-                                              alignment: Alignment.centerLeft,
-                                              height: 5.h,
-                                              decoration: BoxDecoration(
-                                                borderRadius:
-                                                    BorderRadius.circular(8),
-                                                color: const Color(0xffFFFFFF),
-                                                boxShadow: [
-                                                  BoxShadow(
-                                                    color:
-                                                        const Color(0xff000000)
-                                                            .withOpacity(0.12),
-                                                    blurRadius: 8,
-                                                    offset: const Offset(0, 1),
+                                        shrinkWrap: true,
+                                        itemCount:superVisoraddCommentControllerTab1
+                                            .CommentList.length,
+                                        itemBuilder: (context, index) {
+                                          return Column(
+                                            crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                            children: [
+                                              Container(
+                                                alignment: Alignment.center,
+                                                decoration: BoxDecoration(
+                                                  borderRadius:
+                                                  const BorderRadius.only(
+                                                    topLeft: Radius.circular(12),
+                                                    topRight: Radius.circular(12),
                                                   ),
-                                                ],
-                                              ),
-                                              child: Padding(
-                                                padding: EdgeInsets.symmetric(
-                                                    horizontal: 1.5.w,
-                                                    vertical: 1.h),
-                                                child: Row(
-                                                  children: [
-                                                    Expanded(
-                                                      child: TextFormField(
-                                                          keyboardType:
-                                                              TextInputType
-                                                                  .text,
-                                                          controller:
-                                                              messageControllerTab2,
-                                                          style:
-                                                              TextStyle(
-                                                                  fontSize:
-                                                                      13.px),
-                                                          // focusNode: focusNode,
-                                                          autofocus: true,
-                                                          decoration: InputDecoration(
-                                                              border:
-                                                                  InputBorder
-                                                                      .none,
-                                                              hintText:
-                                                                  'Write message...',
-                                                              hintStyle: TextStyle(
-                                                                  fontSize:
-                                                                      10.px,
-                                                                  color: const Color(
-                                                                      0xff757575)))),
+                                                  color: const Color(0xffFFFFFF),
+                                                  boxShadow: [
+                                                    BoxShadow(
+                                                      color: const Color(0xff000000)
+                                                          .withOpacity(0.15),
+                                                      blurRadius: 8,
+                                                      offset: const Offset(0, 1),
                                                     ),
-                                                    InkWell(
-                                                      onTap: () {
-                                                        chatList.add(
-                                                            messageControllerTab2
-                                                                .text);
-                                                        messageControllerTab2
-                                                            .clear();
-                                                      },
-                                                      child: Container(
-                                                        decoration: BoxDecoration(
-                                                            color: const Color(
-                                                                0xffA69EFF),
-                                                            borderRadius:
-                                                                BorderRadius
-                                                                    .circular(
-                                                                        8)),
-                                                        height: 2.8.h,
-                                                        width: 14.w,
-                                                        child: Center(
-                                                          child: Text(
-                                                            'Send',
-                                                            style: TextStyle(
-                                                                color: Colors
-                                                                    .white,
-                                                                fontSize: 10.px,
-                                                                fontWeight:
-                                                                    FontWeight
-                                                                        .w400),
-                                                          ),
-                                                        ),
-                                                      ),
-                                                    )
                                                   ],
                                                 ),
-                                              ))
+                                                margin: EdgeInsets.only(
+                                                    right: 1.w,
+                                                    left: 11.9.w,
+                                                    top: 1.h),
+                                                child: Padding(
+                                                  padding: EdgeInsets.symmetric(
+                                                      horizontal: 1.w,
+                                                      vertical: 1.h),
+                                                  child: Text(
+                                                    superVisoraddCommentControllerTab1.CommentList[index],
+                                                    style:
+                                                    TextStyle(fontSize: 10.px),
+                                                  ),
+                                                ),
+                                              ),
+                                              Container(
+                                                alignment: Alignment.centerLeft,
+                                                decoration: BoxDecoration(
+                                                  borderRadius:
+                                                  const BorderRadius.only(
+                                                    bottomLeft: Radius.circular(12),
+                                                    bottomRight:
+                                                    Radius.circular(12),
+                                                  ),
+                                                  color: const Color(0xffFFFFFF),
+                                                  boxShadow: [
+                                                    BoxShadow(
+                                                      color: const Color(0xff000000)
+                                                          .withOpacity(0.15),
+                                                      blurRadius: 8,
+                                                      offset: const Offset(0, 1),
+                                                    ),
+                                                  ],
+                                                ),
+                                                margin: EdgeInsets.only(
+                                                    right: 1.w,
+                                                    left: 11.9.w,
+                                                    top: .2.h),
+                                                child: Padding(
+                                                  padding: EdgeInsets.symmetric(
+                                                      horizontal: 1.5.w,
+                                                      vertical: .5.h),
+                                                  child: Text(
+                                                    superVisoraddCommentControllerTab1.senderNameList[index],
+                                                    style: TextStyle(
+                                                        fontFamily: MyConstants
+                                                            .mediumFontFamily,
+                                                        fontSize: 10.px,
+                                                        color: const Color(
+                                                            0xff9086FF)),
+                                                  ),
+                                                ),
+                                              ),
+                                              SizedBox(
+                                                height: 1.h,
+                                              ),
+                                              SizedBox(
+                                                height: 1.4.h,
+                                              ),
+                                            ],
+                                          );
+                                        },
+                                      )
+                                          : const SizedBox.shrink(),
+                                      isTab1.value == true
+                                          ? Container(
+                                          alignment: Alignment.centerLeft,
+                                          height: 5.h,
+                                          decoration: BoxDecoration(
+                                            borderRadius: BorderRadius.circular(8),
+                                            color: const Color(0xffFFFFFF),
+                                            boxShadow: [
+                                              BoxShadow(
+                                                color: const Color(0xff000000)
+                                                    .withOpacity(0.12),
+                                                blurRadius: 8,
+                                                offset: const Offset(0, 1),
+                                              ),
+                                            ],
+                                          ),
+                                          child: Padding(
+                                            padding: EdgeInsets.symmetric(
+                                                horizontal: 1.5.w, vertical: 1.h),
+                                            child: Row(
+                                              children: [
+                                                Expanded(
+                                                  child: TextFormField(
+                                                      keyboardType:
+                                                      TextInputType.text,
+                                                      controller:addCommentController.addCommentControllerTab1
+                                                      ,
+                                                      style:
+                                                      TextStyle(fontSize: 13.px),
+                                                      // focusNode: focusNode,
+                                                      autofocus: true,
+                                                      decoration: InputDecoration(
+                                                          border: InputBorder.none,
+                                                          hintText:
+                                                          'Write message...',
+                                                          hintStyle: TextStyle(
+                                                              fontFamily: MyConstants
+                                                                  .regularFontFamily,
+                                                              fontSize: 10.px,
+                                                              fontWeight:
+                                                              FontWeight.w400,
+                                                              color: CustomColors
+                                                                  .customLightGreyColor))),
+                                                ),
+                                                InkWell(
+                                                  onTap: () {
+                                                    log('This is SuperVisor Name ${ signUpController.superVisorName}');
+                                                    log('This is superVisorId ${ signUpController.superVisorId}');
+                                                    if(widget.title=='SuperVisor'){
+                                                      addCommentController.addCommentToFireStore(
+                                                          signUpController.superVisorName,
+                                                          signUpController.superVisorId,
+                                                          addCommentController.addCommentControllerTab1.text,
+                                                          widget.patientId
+                                                      );
+                                                      superVisoraddCommentControllerTab1.getSenderData(widget.patientId);
+
+                                                    }else{
+                                                      addCommentController.addCommentToFireStore(
+                                                          signUPCaretakerController.careTakerName,
+                                                          signUPCaretakerController.careTakerId,
+                                                          addCommentController.addCommentControllerTab1.text,
+                                                          widget.patientId
+                                                      );
+                                                      superVisoraddCommentControllerTab1.getSenderData(widget.patientId);
+
+                                                    }
+
+                                                  },
+                                                  child: Container(
+                                                    decoration: BoxDecoration(
+                                                        color:
+                                                        const Color(0xffA69EFF),
+                                                        borderRadius:
+                                                        BorderRadius.circular(8)),
+                                                    height: 3.h,
+                                                    width: 6.h,
+                                                    child: Center(
+                                                      child: Text(
+                                                        'Send',
+                                                        style: TextStyle(
+                                                            fontFamily: MyConstants
+                                                                .regularFontFamily,
+                                                            color: Colors.white,
+                                                            fontSize: 10.px,
+                                                            fontWeight:
+                                                            FontWeight.w400),
+                                                      ),
+                                                    ),
+                                                  ),
+                                                )
+                                              ],
+                                            ),
+                                          ))
                                           : SizedBox.shrink(),
                                     ],
                                   ),
@@ -1006,7 +1086,7 @@ class _CaretakerAfterBabyAddScreenState
                                 height: 1.h,
                               ),
                               Text(
-                                "Detail explain what's happened",
+                                "${babyModelController.selectedPregnancy}" ?? "",
                                 style: TextStyle(
                                     fontSize: 10.px,
                                     color: CustomColors.customDarkBlackColor,
@@ -1032,7 +1112,7 @@ class _CaretakerAfterBabyAddScreenState
                                 height: 1.h,
                               ),
                               Text(
-                                "Vaginal Delivery",
+                                "${babyModelController.deliveryCase}" ?? "",
                                 style: TextStyle(
                                     color: CustomColors.customDarkBlackColor,
                                     fontFamily: MyConstants.mediumFontFamily,
@@ -1058,7 +1138,7 @@ class _CaretakerAfterBabyAddScreenState
                                 height: 1.h,
                               ),
                               Text(
-                                "1",
+                                "${babyModelController.noOfBabies}" ?? "",
                                 style: TextStyle(
                                     color: CustomColors.customDarkBlackColor,
                                     fontFamily: MyConstants.mediumFontFamily,
@@ -1073,9 +1153,12 @@ class _CaretakerAfterBabyAddScreenState
                                 color: Color(0xffBFBFBF),
                               ),
                               Row(
+                                mainAxisAlignment: MainAxisAlignment.start,
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     children: [
                                       Text(
                                         'Date of delivery',
@@ -1098,12 +1181,12 @@ class _CaretakerAfterBabyAddScreenState
                                             width: 1.w,
                                           ),
                                           Text(
-                                            formatedDate.toString(),
+                                            "${_formatTimestamp(babyModelController.selectedDate1)}" ?? "",
                                             style: TextStyle(
                                                 fontSize: 10.px,
                                                 fontWeight: FontWeight.w500,
-                                                overflow:
-                                                    TextOverflow.ellipsis),
+                                                overflow: TextOverflow.ellipsis
+                                            ),
                                           ),
                                           SizedBox(
                                             width: 5.w,
@@ -1138,7 +1221,8 @@ class _CaretakerAfterBabyAddScreenState
                                             width: 1.w,
                                           ),
                                           Text(
-                                            formatedTime,
+                                            "${babyModelController.selectedTime}" ??
+                                                "",
                                             style: TextStyle(
                                                 fontSize: 10.px,
                                                 fontWeight: FontWeight.w500,
@@ -1169,7 +1253,7 @@ class _CaretakerAfterBabyAddScreenState
                                 height: 1.h,
                               ),
                               Text(
-                                "Male",
+                                "${babyModelController.Gender}" ?? "",
                                 style: TextStyle(
                                     color: CustomColors.customDarkBlackColor,
                                     fontFamily: MyConstants.mediumFontFamily,
@@ -1195,7 +1279,7 @@ class _CaretakerAfterBabyAddScreenState
                                 height: 1.h,
                               ),
                               Text(
-                                "Answer",
+                                "${babyModelController.bodyWeight}" ?? "",
                                 style: TextStyle(
                                     color: CustomColors.customDarkBlackColor,
                                     fontFamily: MyConstants.mediumFontFamily,
@@ -1238,266 +1322,253 @@ class _CaretakerAfterBabyAddScreenState
                               ),
                               Container(
                                 decoration: BoxDecoration(
-                                  borderRadius:
-                                      BorderRadiusDirectional.circular(8),
+                                  borderRadius: BorderRadiusDirectional.circular(8),
                                   color: const Color(0xffFFFFFF),
                                   boxShadow: [
                                     BoxShadow(
-                                      color: const Color(0xff000000)
-                                          .withOpacity(0.15),
+                                      color: const Color(0xff000000).withOpacity(0.15),
                                       blurRadius: 4,
                                       offset: const Offset(0, 1),
                                     ),
                                   ],
                                 ),
                                 child: Padding(
-                                  padding: isTab3.value == true
+                                  padding: isTab1.value == true
                                       ? EdgeInsets.symmetric(
-                                          horizontal: 1.5.w, vertical: 1.5.h)
+                                      horizontal: 1.5.w, vertical: 1.5.h)
                                       : EdgeInsets.symmetric(
-                                          horizontal: 1.5.w, vertical: 1.h),
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
+                                      horizontal: 1.5.w, vertical: 1.h),
+                                  child:widget.title=='Admin'?SizedBox.shrink(): Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
                                     mainAxisAlignment: MainAxisAlignment.center,
                                     children: [
                                       InkWell(
                                         onTap: () {
-                                          if (isTab3.value == true) {
-                                            isTab3.value = false;
+                                          if (isTab1.value == true) {
+                                            isTab1.value = false;
                                           } else {
-                                            isTab3.value = true;
+                                            isTab1.value = true;
                                           }
                                         },
                                         child: Row(
                                           children: [
-                                            isTab3.value
+                                            isTab1.value
                                                 ? SvgPicture.asset(
-                                                    'assets/svg/circleminus.svg')
+                                                'assets/svg/circleminus.svg')
                                                 : SvgPicture.asset(
-                                                    'assets/svg/circle.svg'),
+                                                'assets/svg/circle.svg'),
                                             SizedBox(
                                               width: 1.w,
                                             ),
                                             Text(
                                               'Comment',
                                               style: TextStyle(
+                                                  fontFamily:
+                                                  MyConstants.mediumFontFamily,
                                                   fontSize: 13.px,
                                                   fontWeight: FontWeight.w500,
-                                                  color:
-                                                      const Color(0xff837AE8)),
+                                                  color: const Color(0xff9086FF)),
                                             ),
                                           ],
                                         ),
                                       ),
                                       Padding(
-                                        padding: isTab3.value == true
+                                        padding: isTab1.value == true
                                             ? EdgeInsets.symmetric(
-                                                horizontal: 1.w, vertical: 1.h)
+                                            horizontal: 1.w, vertical: 1.h)
                                             : EdgeInsets.symmetric(
-                                                horizontal: 1.w, vertical: 0),
+                                            horizontal: 1.w, vertical: 0),
                                         child: const Divider(
-                                          color: Color(0xff707070),
+                                          color: CustomColors.customGreyBoldColor,
                                         ),
                                       ),
                                       // isPressed.value==true?
-                                      isTab3.value == true
+                                      isTab1.value == true
                                           ? ListView.builder(
-                                              shrinkWrap: true,
-                                              itemCount: chatList.length,
-                                              itemBuilder: (context, index) {
-                                                return Column(
-                                                  crossAxisAlignment:
-                                                      CrossAxisAlignment.start,
-                                                  children: [
-                                                    Container(
-                                                      alignment:
-                                                          Alignment.center,
-                                                      decoration: BoxDecoration(
-                                                        borderRadius:
-                                                            const BorderRadius
-                                                                .only(
-                                                          topLeft:
-                                                              Radius.circular(
-                                                                  12),
-                                                          topRight:
-                                                              Radius.circular(
-                                                                  12),
-                                                        ),
-                                                        color: const Color(
-                                                            0xffFFFFFF),
-                                                        boxShadow: [
-                                                          BoxShadow(
-                                                            color: const Color(
-                                                                    0xff000000)
-                                                                .withOpacity(
-                                                                    0.15),
-                                                            blurRadius: 8,
-                                                            offset:
-                                                                const Offset(
-                                                                    0, 1),
-                                                          ),
-                                                        ],
-                                                      ),
-                                                      margin: EdgeInsets.only(
-                                                          right: 1.w,
-                                                          left: 11.9.w,
-                                                          top: 1.h),
-                                                      child: Padding(
-                                                        padding: EdgeInsets
-                                                            .symmetric(
-                                                                horizontal: 1.w,
-                                                                vertical: 1.h),
-                                                        child: Text(
-                                                          chatList[index],
-                                                          style: TextStyle(
-                                                              fontSize: 10.px),
-                                                        ),
-                                                      ),
-                                                    ),
-                                                    Container(
-                                                      alignment:
-                                                          Alignment.centerLeft,
-                                                      decoration: BoxDecoration(
-                                                        borderRadius:
-                                                            const BorderRadius
-                                                                .only(
-                                                          bottomLeft:
-                                                              Radius.circular(
-                                                                  12),
-                                                          bottomRight:
-                                                              Radius.circular(
-                                                                  12),
-                                                        ),
-                                                        color: const Color(
-                                                            0xffFFFFFF),
-                                                        boxShadow: [
-                                                          BoxShadow(
-                                                            color: const Color(
-                                                                    0xff000000)
-                                                                .withOpacity(
-                                                                    0.15),
-                                                            blurRadius: 8,
-                                                            offset:
-                                                                const Offset(
-                                                                    0, 1),
-                                                          ),
-                                                        ],
-                                                      ),
-                                                      margin: EdgeInsets.only(
-                                                          right: 1.w,
-                                                          left: 11.9.w,
-                                                          top: .2.h),
-                                                      child: Padding(
-                                                        padding: EdgeInsets
-                                                            .symmetric(
-                                                                horizontal:
-                                                                    1.5.w,
-                                                                vertical: .5.h),
-                                                        child: Text(
-                                                          'Caretaker',
-                                                          style: TextStyle(
-                                                              fontSize: 10.px,
-                                                              color: const Color(
-                                                                  0xff9086FF)),
-                                                        ),
-                                                      ),
-                                                    ),
-                                                    SizedBox(
-                                                      height: 1.h,
-                                                    ),
-                                                    SizedBox(
-                                                      height: 1.4.h,
-                                                    ),
-                                                  ],
-                                                );
-                                              },
-                                            )
-                                          : const SizedBox.shrink(),
-                                      isTab3.value == true
-                                          ? Container(
-                                              alignment: Alignment.centerLeft,
-                                              height: 5.h,
-                                              decoration: BoxDecoration(
-                                                borderRadius:
-                                                    BorderRadius.circular(8),
-                                                color: const Color(0xffFFFFFF),
-                                                boxShadow: [
-                                                  BoxShadow(
-                                                    color:
-                                                        const Color(0xff000000)
-                                                            .withOpacity(0.12),
-                                                    blurRadius: 8,
-                                                    offset: const Offset(0, 1),
+                                        shrinkWrap: true,
+                                        itemCount:superVisoraddCommentControllerTab1
+                                            .CommentList.length,
+                                        itemBuilder: (context, index) {
+                                          return Column(
+                                            crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                            children: [
+                                              Container(
+                                                alignment: Alignment.center,
+                                                decoration: BoxDecoration(
+                                                  borderRadius:
+                                                  const BorderRadius.only(
+                                                    topLeft: Radius.circular(12),
+                                                    topRight: Radius.circular(12),
                                                   ),
-                                                ],
-                                              ),
-                                              child: Padding(
-                                                padding: EdgeInsets.symmetric(
-                                                    horizontal: 1.5.w,
-                                                    vertical: 1.h),
-                                                child: Row(
-                                                  children: [
-                                                    Expanded(
-                                                      child: TextFormField(
-                                                          keyboardType:
-                                                              TextInputType
-                                                                  .text,
-                                                          controller:
-                                                              messageControllerTab3,
-                                                          style:
-                                                              TextStyle(
-                                                                  fontSize:
-                                                                      13.px),
-                                                          // focusNode: focusNode,
-                                                          autofocus: true,
-                                                          decoration: InputDecoration(
-                                                              border:
-                                                                  InputBorder
-                                                                      .none,
-                                                              hintText:
-                                                                  'Write message...',
-                                                              hintStyle: TextStyle(
-                                                                  fontSize:
-                                                                      10.px,
-                                                                  color: const Color(
-                                                                      0xff757575)))),
+                                                  color: const Color(0xffFFFFFF),
+                                                  boxShadow: [
+                                                    BoxShadow(
+                                                      color: const Color(0xff000000)
+                                                          .withOpacity(0.15),
+                                                      blurRadius: 8,
+                                                      offset: const Offset(0, 1),
                                                     ),
-                                                    InkWell(
-                                                      onTap: () {
-                                                        chatList.add(
-                                                            messageControllerTab3
-                                                                .text);
-                                                        messageControllerTab3
-                                                            .clear();
-                                                      },
-                                                      child: Container(
-                                                        decoration: BoxDecoration(
-                                                            color: const Color(
-                                                                0xffA69EFF),
-                                                            borderRadius:
-                                                                BorderRadius
-                                                                    .circular(
-                                                                        8)),
-                                                        height: 2.8.h,
-                                                        width: 14.w,
-                                                        child: Center(
-                                                          child: Text(
-                                                            'Send',
-                                                            style: TextStyle(
-                                                                color: Colors
-                                                                    .white,
-                                                                fontSize: 10.px,
-                                                                fontWeight:
-                                                                    FontWeight
-                                                                        .w400),
-                                                          ),
-                                                        ),
-                                                      ),
-                                                    )
                                                   ],
                                                 ),
-                                              ))
+                                                margin: EdgeInsets.only(
+                                                    right: 1.w,
+                                                    left: 11.9.w,
+                                                    top: 1.h),
+                                                child: Padding(
+                                                  padding: EdgeInsets.symmetric(
+                                                      horizontal: 1.w,
+                                                      vertical: 1.h),
+                                                  child: Text(
+                                                    superVisoraddCommentControllerTab1.CommentList[index],
+                                                    style:
+                                                    TextStyle(fontSize: 10.px),
+                                                  ),
+                                                ),
+                                              ),
+                                              Container(
+                                                alignment: Alignment.centerLeft,
+                                                decoration: BoxDecoration(
+                                                  borderRadius:
+                                                  const BorderRadius.only(
+                                                    bottomLeft: Radius.circular(12),
+                                                    bottomRight:
+                                                    Radius.circular(12),
+                                                  ),
+                                                  color: const Color(0xffFFFFFF),
+                                                  boxShadow: [
+                                                    BoxShadow(
+                                                      color: const Color(0xff000000)
+                                                          .withOpacity(0.15),
+                                                      blurRadius: 8,
+                                                      offset: const Offset(0, 1),
+                                                    ),
+                                                  ],
+                                                ),
+                                                margin: EdgeInsets.only(
+                                                    right: 1.w,
+                                                    left: 11.9.w,
+                                                    top: .2.h),
+                                                child: Padding(
+                                                  padding: EdgeInsets.symmetric(
+                                                      horizontal: 1.5.w,
+                                                      vertical: .5.h),
+                                                  child: Text(
+                                                    superVisoraddCommentControllerTab1.senderNameList[index],
+                                                    style: TextStyle(
+                                                        fontFamily: MyConstants
+                                                            .mediumFontFamily,
+                                                        fontSize: 10.px,
+                                                        color: const Color(
+                                                            0xff9086FF)),
+                                                  ),
+                                                ),
+                                              ),
+                                              SizedBox(
+                                                height: 1.h,
+                                              ),
+                                              SizedBox(
+                                                height: 1.4.h,
+                                              ),
+                                            ],
+                                          );
+                                        },
+                                      )
+                                          : const SizedBox.shrink(),
+                                      isTab1.value == true
+                                          ? Container(
+                                          alignment: Alignment.centerLeft,
+                                          height: 5.h,
+                                          decoration: BoxDecoration(
+                                            borderRadius: BorderRadius.circular(8),
+                                            color: const Color(0xffFFFFFF),
+                                            boxShadow: [
+                                              BoxShadow(
+                                                color: const Color(0xff000000)
+                                                    .withOpacity(0.12),
+                                                blurRadius: 8,
+                                                offset: const Offset(0, 1),
+                                              ),
+                                            ],
+                                          ),
+                                          child: Padding(
+                                            padding: EdgeInsets.symmetric(
+                                                horizontal: 1.5.w, vertical: 1.h),
+                                            child: Row(
+                                              children: [
+                                                Expanded(
+                                                  child: TextFormField(
+                                                      keyboardType:
+                                                      TextInputType.text,
+                                                      controller:addCommentController.addCommentControllerTab1
+                                                      ,
+                                                      style:
+                                                      TextStyle(fontSize: 13.px),
+                                                      // focusNode: focusNode,
+                                                      autofocus: true,
+                                                      decoration: InputDecoration(
+                                                          border: InputBorder.none,
+                                                          hintText:
+                                                          'Write message...',
+                                                          hintStyle: TextStyle(
+                                                              fontFamily: MyConstants
+                                                                  .regularFontFamily,
+                                                              fontSize: 10.px,
+                                                              fontWeight:
+                                                              FontWeight.w400,
+                                                              color: CustomColors
+                                                                  .customLightGreyColor))),
+                                                ),
+                                                InkWell(
+                                                  onTap: () {
+                                                    log('This is SuperVisor Name ${ signUpController.superVisorName}');
+                                                    log('This is superVisorId ${ signUpController.superVisorId}');
+                                                    if(widget.title=='SuperVisor'){
+                                                      addCommentController.addCommentToFireStore(
+                                                          signUpController.superVisorName,
+                                                          signUpController.superVisorId,
+                                                          addCommentController.addCommentControllerTab1.text,
+                                                          widget.patientId
+                                                      );
+                                                      superVisoraddCommentControllerTab1.getSenderData(widget.patientId);
+
+                                                    }else{
+                                                      addCommentController.addCommentToFireStore(
+                                                          signUPCaretakerController.careTakerName,
+                                                          signUPCaretakerController.careTakerId,
+                                                          addCommentController.addCommentControllerTab1.text,
+                                                          widget.patientId
+                                                      );
+                                                      superVisoraddCommentControllerTab1.getSenderData(widget.patientId);
+
+                                                    }
+
+                                                  },
+                                                  child: Container(
+                                                    decoration: BoxDecoration(
+                                                        color:
+                                                        const Color(0xffA69EFF),
+                                                        borderRadius:
+                                                        BorderRadius.circular(8)),
+                                                    height: 3.h,
+                                                    width: 6.h,
+                                                    child: Center(
+                                                      child: Text(
+                                                        'Send',
+                                                        style: TextStyle(
+                                                            fontFamily: MyConstants
+                                                                .regularFontFamily,
+                                                            color: Colors.white,
+                                                            fontSize: 10.px,
+                                                            fontWeight:
+                                                            FontWeight.w400),
+                                                      ),
+                                                    ),
+                                                  ),
+                                                )
+                                              ],
+                                            ),
+                                          ))
                                           : SizedBox.shrink(),
                                     ],
                                   ),
@@ -1520,5 +1591,58 @@ class _CaretakerAfterBabyAddScreenState
         ),
       ),
     );
+  }
+  Future<void> showMyDialog() async {
+    return showDialog(context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: Text("Patient Discharge", style: TextStyle(fontSize: 20,
+                fontFamily: MyConstants.boldFontFamily,
+                fontWeight: FontWeight.bold,
+                color: CustomColors.mainAppColor)),
+            content: Text(
+              "Are you sure to discharge the patient ?", style: TextStyle(
+              color: CustomColors.customDarkBlackColor,
+              fontFamily: MyConstants.mediumFontFamily,
+              fontSize: 12.px,
+              fontWeight: FontWeight.w500,),),
+            actions: [
+              TextButton(style: ElevatedButton.styleFrom(
+                  backgroundColor: CustomColors.mainAppColor,
+                  fixedSize: Size(10, 4)),
+                  onPressed: () {
+                    dischargePatient();
+                    Navigator.of(context).pop();
+                  },
+                  child: Text("Yes", style: TextStyle(color: Colors.white),)),
+              TextButton(style: ElevatedButton.styleFrom(
+                  backgroundColor: CustomColors.mainAppColor,
+                  fixedSize: Size(10, 4)),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  }, child: Text("No", style: TextStyle(color: Colors.white),))
+            ],
+          );
+        });
+  }
+
+  void dischargePatient() async {
+
+    try {
+      await FirebaseFirestore.instance.collection("patient_data")
+          .where("status", isEqualTo: "pending")
+          .limit(1)
+          .get()
+          .then((querySnapshot) {
+        querySnapshot.docs.forEach((doc) {
+          doc.reference.update({"status": "complete"});
+        });
+      });
+
+      Navigator.push(context, MaterialPageRoute(builder: (_)=>CaretakerBottomNavigationScreen()));
+    } catch (e) {
+      print("Error discharging patient: $e");
+      // Handle error
+    }
   }
 }

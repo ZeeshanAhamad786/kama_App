@@ -3,10 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:kama_app/Utils/Colors/Colors.dart';
 import 'package:kama_app/Utils/Constant/Constant.dart';
-import 'package:kama_app/View/HomePage/center_screen.dart';
-import 'package:kama_app/View/HomePage/setting_screen.dart';
+import 'package:kama_app/View/Admin/HomePage/center_screen.dart';
+import 'package:kama_app/View/Admin/HomePage/setting_screen.dart';
 import 'package:responsive_sizer/responsive_sizer.dart';
-import '../HomePage/home_screen.dart';
+import '../Admin/HomePage/home_screen.dart';
 
 class BottomNavigationBarScreen extends StatefulWidget {
   int? currentIndex;

@@ -1,6 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
+
 import 'package:responsive_sizer/responsive_sizer.dart';
 
 class CustomElevatedButton extends StatelessWidget {
@@ -23,8 +23,7 @@ class CustomElevatedButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return   ElevatedButton(
       onPressed: onPressed,
-      style: ElevatedButton.styleFrom(fixedSize: Size(18.h, 3.6.h),
-        primary: buttonColor, // Button color
+      style: ElevatedButton.styleFrom(fixedSize: Size(18.h, 3.6.h), backgroundColor: buttonColor, // Button color
 
         // Text color
       ),

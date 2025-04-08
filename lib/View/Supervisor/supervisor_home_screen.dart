@@ -1,21 +1,23 @@
-import 'dart:developer';
 
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
+import 'package:intl/intl.dart';
 import 'package:kama_app/Utils/Colors/Colors.dart';
 import 'package:kama_app/Utils/Constant/Constant.dart';
-import 'package:kama_app/View/HomePage/center_screen.dart';
-import 'package:kama_app/View/HomePage/setting_screen.dart';
 import 'package:kama_app/View/Supervisor/alert_screen.dart';
-import 'package:kama_app/View/Supervisor/center_name_screen.dart';
-import 'package:kama_app/View/Supervisor/center_patient_name.dart';
-import 'package:kama_app/View/Supervisor/personal_details.dart';
-import 'package:kama_app/View/Supervisor/refer_other_screen.dart';
+import 'package:kama_app/View/Supervisor/patient_screen.dart';
+import 'package:kama_app/View/Supervisor/supervisor_complete_patient.dart';
+import 'package:kama_app/View/Supervisor/supervisor_pending_patient.dart';
+import 'package:kama_app/View/Supervisor/supervisor_total_patient.dart';
 import 'package:responsive_sizer/responsive_sizer.dart';
-
-import '../BottomNavigationBar/bottom_navigation_bar_screen.dart';
+import '../../ViewModel/AdminController/new_center_add_controller.dart';
+import '../../ViewModel/Care_taker/patient_personal_details_controller.dart';
+import '../../ViewModel/Supervisor/sign_up_controller.dart';
+import '../../ViewModel/Supervisor/supervisor_comment_controller.dart';
 import '../BottomNavigationBar/supervisor_bottom_naviagtion_screen.dart';
+import '../CaretakerScreens/caretaker_personal_details.dart';
 
 class SupervisorHomeScreen extends StatefulWidget {
   const SupervisorHomeScreen({Key? key}) : super(key: key);
@@ -26,26 +28,43 @@ class SupervisorHomeScreen extends StatefulWidget {
 
 class _SupervisorHomeScreenState extends State<SupervisorHomeScreen> {
   final GlobalKey<ScaffoldState> _globalKey = GlobalKey<ScaffoldState>();
+  AddNewCenterController addNewCenterController =Get.find(tag: "addNewCenterController");
+  PatientPersonalDetailsController patientPersonalDetailsController=Get.find(tag: "patientPersonalDetailsController");
+  final SupervisorAddCommentController superVisoraddCommentControllerTab1 =
+  Get.find(tag: 'supervisorAddCommentController');
+  RxInt totalPatientCount=0.obs;
+  RxInt patientPending=0.obs;
+  RxInt patientComplete=0.obs;
+  @override
+  void initState(){
+    super.initState();
+    fetchPatients();
+    signUpController.getSuperVisor();
+    signUpController.getSuperVisorData();
+  }
+  final SignUpController signUpController = Get.find(tag: 'signUpController');
 
+  Future<void> fetchPatients() async {
+    QuerySnapshot snapshot =
+    await FirebaseFirestore.instance.collection('patient_data').get();
 
-  List<String> centerName = [
-    "Center Name",
-    "Center Name",
-    "Center Name",
-    "Center Name",
-    "Center Name",
-  ];
-  List<String> centerNumber = [
-    "175",
-    "200",
-    "500",
-    "600",
-    "120",
-  ];
+    totalPatientCount.value = snapshot.size;
 
+    snapshot.docs.forEach((DocumentSnapshot document) {
+      var data = document.data() as Map<String, dynamic>;
+      var status = data['status'];
+
+      if (status == 'pending') {
+        patientPending.value++;
+      } else if (status == 'complete') {
+        patientComplete.value++;
+      }
+    });
+  }
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return
+    Obx(()=>  Scaffold(
       backgroundColor: Colors.white,
       key: _globalKey,
       drawer: Drawer(
@@ -135,7 +154,7 @@ class _SupervisorHomeScreenState extends State<SupervisorHomeScreen> {
                   },
                   child: SvgPicture.asset("assets/svg/BURGER.svg")),
               const Text(
-                "Kama",
+                "KAMA Care",
                 style: TextStyle(
                     fontFamily: MyConstants.boldFontFamily,
                     fontWeight: FontWeight.w600,
@@ -157,12 +176,12 @@ class _SupervisorHomeScreenState extends State<SupervisorHomeScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Column(
+              Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    "Hello Supervisor",
+                    "Hello ${signUpController.superVisorName}",
                     style: TextStyle(
                         color: CustomColors.customBlackColor,
                         fontWeight: FontWeight.w600,
@@ -179,40 +198,47 @@ class _SupervisorHomeScreenState extends State<SupervisorHomeScreen> {
                   ),
                 ],
               ),
-              SvgPicture.asset("assets/svg/bellicon.svg")
+              GestureDetector(onTap: () {
+                Navigator.push(context, MaterialPageRoute(builder: (_)=>AlertScreen()));
+              },
+                  child: SvgPicture.asset("assets/svg/bellicon.svg"))
             ],
           ),
           SizedBox(
             height: 4.h,
           ),
-          Container(
-            alignment: Alignment.center,
-            height: 100,
-            width: MediaQuery.of(context).size.width,
-            decoration: const BoxDecoration(
-                image: DecorationImage(
-                    image: AssetImage("assets/png/backgroundImage.png"))),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: [
-                const Text("Today's Patient",
-                    style: TextStyle(
-                      color: CustomColors.customBlackColor,
-                      fontSize: 20,
-                      fontFamily: MyConstants.mediumFontFamily,
-                      fontWeight: FontWeight.w500,
-                    )),
-                SizedBox(
-                  width: 1.h,
-                ),
-                const Text("175",
-                    style: TextStyle(
-                      color: CustomColors.customBlackColor,
-                      fontSize: 25,
-                      fontFamily: MyConstants.boldFontFamily,
-                      fontWeight: FontWeight.w600,
-                    )),
-              ],
+          GestureDetector(onTap: () {
+            Get.to(()=>SupervisorTotalPatient());
+          },
+            child: Container(
+              alignment: Alignment.center,
+              height: 100,
+              width: MediaQuery.of(context).size.width,
+              decoration: const BoxDecoration(
+                  image: DecorationImage(
+                      image: AssetImage("assets/png/backgroundImage.png"))),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: [
+                  const Text("Today's Patients",
+                      style: TextStyle(
+                        color: CustomColors.customBlackColor,
+                        fontSize: 20,
+                        fontFamily: MyConstants.mediumFontFamily,
+                        fontWeight: FontWeight.w500,
+                      )),
+                  SizedBox(
+                    width: 1.h,
+                  ),
+                  Text('${totalPatientCount.toString()}',
+                      style: TextStyle(
+                        color: CustomColors.customBlackColor,
+                        fontSize: 25,
+                        fontFamily: MyConstants.boldFontFamily,
+                        fontWeight: FontWeight.w600,
+                      )),
+                ],
+              ),
             ),
           ),
           SizedBox(
@@ -221,63 +247,71 @@ class _SupervisorHomeScreenState extends State<SupervisorHomeScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Container(
-                alignment: Alignment.center,
-                height: 20.h,
-                width: MediaQuery.of(context).size.width / 2.5,
-                decoration: const BoxDecoration(
-                    image: DecorationImage(
-                        image: AssetImage("assets/png/pinkbackground.png"))),
-                child: const Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text("45",
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          color: CustomColors.customBlackColor,
-                          fontSize: 25,
-                          fontFamily: MyConstants.boldFontFamily,
-                          fontWeight: FontWeight.w600,
-                        )),
-                    Text("Pending Patients ",
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          color: CustomColors.customBlackColor,
-                          fontSize: 16,
-                          fontFamily: MyConstants.regularFontFamily,
-                          fontWeight: FontWeight.w400,
-                        )),
-                  ],
+              GestureDetector(onTap: () {
+                Get.to(()=>SupervisorPendingPatient());
+              },
+                child: Container(
+                  alignment: Alignment.center,
+                  height: 20.h,
+                  width: MediaQuery.of(context).size.width / 2.5,
+                  decoration: const BoxDecoration(
+                      image: DecorationImage(
+                          image: AssetImage("assets/png/pinkbackground.png"))),
+                  child:  Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text('${patientPending.toString()}',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            color: CustomColors.customBlackColor,
+                            fontSize: 25,
+                            fontFamily: MyConstants.boldFontFamily,
+                            fontWeight: FontWeight.w600,
+                          )),
+                      Text("Pending Patients ",
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            color: CustomColors.customBlackColor,
+                            fontSize: 16,
+                            fontFamily: MyConstants.regularFontFamily,
+                            fontWeight: FontWeight.w400,
+                          )),
+                    ],
+                  ),
                 ),
               ),
-              Container(
-                alignment: Alignment.center,
-                height: 20.h,
-                width: MediaQuery.of(context).size.width / 2.5,
-                decoration: const BoxDecoration(
-                    image: DecorationImage(
-                        image: AssetImage("assets/png/greenbackground.png"))),
-                child: const Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    Text("102",
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          color: CustomColors.customBlackColor,
-                          fontSize: 25,
-                          fontFamily: MyConstants.boldFontFamily,
-                          fontWeight: FontWeight.w600,
-                        )),
-                    Text("Complete Patients ",
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          color: CustomColors.customBlackColor,
-                          fontSize: 16,
-                          fontFamily: MyConstants.regularFontFamily,
-                          fontWeight: FontWeight.w400,
-                        )),
-                  ],
+              GestureDetector(onTap: () {
+                Get.to(()=>SupervisorcompletePatient());
+              },
+                child: Container(
+                  alignment: Alignment.center,
+                  height: 20.h,
+                  width: MediaQuery.of(context).size.width / 2.5,
+                  decoration: const BoxDecoration(
+                      image: DecorationImage(
+                          image: AssetImage("assets/png/greenbackground.png"))),
+                  child:  Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Text("${patientComplete.toString()}",
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            color: CustomColors.customBlackColor,
+                            fontSize: 25,
+                            fontFamily: MyConstants.boldFontFamily,
+                            fontWeight: FontWeight.w600,
+                          )),
+                      Text("Complete Patients ",
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            color: CustomColors.customBlackColor,
+                            fontSize: 16,
+                            fontFamily: MyConstants.regularFontFamily,
+                            fontWeight: FontWeight.w400,
+                          )),
+                    ],
+                  ),
                 ),
               ),
             ],
@@ -297,7 +331,7 @@ class _SupervisorHomeScreenState extends State<SupervisorHomeScreen> {
                       fontSize: 10),
                 ),
                 InkWell(onTap: () {
-                  Navigator.push(context, MaterialPageRoute(builder: (_)=>CenterNameScreen()));
+                  Navigator.push(context, MaterialPageRoute(builder: (_)=>SuperVisorPatientName()));
                 },
                   child: Text(
                     "View All",
@@ -315,57 +349,107 @@ class _SupervisorHomeScreenState extends State<SupervisorHomeScreen> {
           SizedBox(
             height: 3.h,
           ),
-          Expanded(
-            child: InkWell(onTap:() {
-              Navigator.push(context, MaterialPageRoute(builder: (_)=>CenterPatientName()));
-            },
-              child: ListView.builder(
-                  itemCount: centerName.length,
-                  itemBuilder: (BuildContext context, int index) {
-                    return Padding(
-                      padding: EdgeInsets.all(1.h),
-                      child: Container(
-                        height: 6.5.h,
-                        width: MediaQuery.of(context).size.width,
-                        decoration: BoxDecoration(
-                            boxShadow: [
-                              BoxShadow(
-                                  color: CustomColors.customBlackColor
-                                      .withOpacity(0.15),
-                                  blurRadius: 8,
-                                  offset: const Offset(0, 1))
-                            ],
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(10)),
+
+          Expanded(child: StreamBuilder(
+            stream: patientPersonalDetailsController.userPatientData.snapshots(),
+            builder: (BuildContext context, AsyncSnapshot<dynamic> snapshot) {
+              if(snapshot.hasError){
+                return Text("Something went wrong");
+              }else if (snapshot.connectionState ==ConnectionState.waiting){
+                return Center(child: CircularProgressIndicator());
+              }else if(!snapshot.hasData){
+                return Text("No data found");
+              }else if(snapshot.hasData){
+                return ListView.builder(
+                    physics:  BouncingScrollPhysics(),
+                    itemCount: snapshot.data.docs.length,
+                    itemBuilder: (BuildContext context, int index) {
+                      return GestureDetector(onTap: () {
+                        superVisoraddCommentControllerTab1.getSenderData(snapshot.data.docs[index]["userId"]);
+                        Get.to(CaretakerPersonalDetails(
+                          userName: snapshot.data.docs[index]["userName"],
+                          patientId: snapshot.data.docs[index]["userId"],
+                          userNoOfChildrenAndYearOfDelivery: snapshot.data.docs[index]["noOfChildrenAndYearOfDelivery"],
+                          userMedicalCondition: snapshot.data.docs[index]["medicalCondition"],
+                          userEthnicity: snapshot.data.docs[index]["userEthnicity"],
+                          userReligion: snapshot.data.docs[index]["userReligion"],
+                          userSourceOfIncome: snapshot.data.docs[index]["userSourceOfIncome"],
+                          userAge: snapshot.data.docs[index]["userAge"],
+                          userLevelOfEducation: snapshot.data.docs[index]["levelOfEducation"],
+                          userMaritalStatus: snapshot.data.docs[index]["maritalStatus"],
+                          userVaginalDelivery: snapshot.data.docs[index]["vaginalDelivery"],
+                          userPreviousPregnancies: snapshot.data.docs[index]["previousPregnancies"],
+                          userLastPeriod: snapshot.data.docs[index]["lastPeriod"],
+                          userInitial: snapshot.data.docs[index]["Initial"],
+                          selectedDate: snapshot.data.docs[index]["selectedDate"]?.toDate() != null
+                              ? DateFormat('dd/MM/yyyy').format(snapshot.data.docs[index]["selectedDate"].toDate())
+                              : null,
+                          estimatedGestationalAge: snapshot.data.docs[index]["estimatedGestationalAge"],
+                          sFH: snapshot.data.docs[index]["sFH"],
+                          fetalHeartRate: snapshot.data.docs[index]["fetalHeartRate"],
+                          weight: snapshot.data.docs[index]["weight"],
+                          height: snapshot.data.docs[index]["height"],
+                          bMI: snapshot.data.docs[index]["bMI"],
+                          bP: snapshot.data.docs[index]["bP"],
+                          urineTest: snapshot.data.docs[index]["urineTest"],
+                          glucoseLevel: snapshot.data.docs[index]["glucoseLevel"],
+                          bloodLevel: snapshot.data.docs[index]["bloodLevel"],
+                          temperature: snapshot.data.docs[index]["temperature"],
+                          tTAndiPT: snapshot.data.docs[index]["tTAndiPT"],
+                          title: 'SuperVisor',
+
+
+
+
+
+                        ));
+                      },
                         child: Padding(
-                          padding: EdgeInsets.symmetric(horizontal: 3.h),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            crossAxisAlignment: CrossAxisAlignment.center,
-                            children: [
-                              Text(centerName[index],
-                                  style: const TextStyle(
-                                      fontFamily: MyConstants.mediumFontFamily,
-                                      fontSize: 13,
-                                      fontWeight: FontWeight.w500,
-                                      color: CustomColors.customBlackColor)),
-                              Text(centerNumber[index],
-                                  style: const TextStyle(
-                                      fontFamily: MyConstants.boldFontFamily,
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.w600,
-                                      color: CustomColors.customBlackColor)),
-                            ],
+                          padding: EdgeInsets.all(1.h),
+                          child: Container(
+                            height: 6.5.h,
+                            width: MediaQuery.of(context).size.width,
+                            decoration: BoxDecoration(
+                                boxShadow: [
+                                  BoxShadow(
+                                      color: CustomColors.customBlackColor
+                                          .withOpacity(0.15),
+                                      blurRadius: 8,
+                                      offset: const Offset(0, 1))
+                                ],
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(10)),
+                            child: Padding(
+                              padding: EdgeInsets.symmetric(horizontal: 3.h),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                children: [
+                                  Text(snapshot.data.docs[index]["userName"],
+                                      style: const TextStyle(
+                                          fontFamily: MyConstants.mediumFontFamily,
+                                          fontSize: 13,
+                                          fontWeight: FontWeight.w500,
+                                          color: CustomColors.customBlackColor)),
+                                  Text("",
+                                      style: const TextStyle(
+                                          fontFamily: MyConstants.boldFontFamily,
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.w600,
+                                          color: CustomColors.customBlackColor)),
+                                ],
+                              ),
+                            ),
                           ),
                         ),
-                      ),
-                    );
-                  }),
-            ),
-          ),
+                      );
+                    }
+                );
+              }return Container();
+            },))
         ]),
       ),
-    );
+    ));
   }
 
   Widget buildDrawerItem(

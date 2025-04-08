@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
 import 'package:kama_app/Utils/Colors/Colors.dart';
-import 'package:kama_app/View/Admin/admin.dart';
+import 'package:kama_app/View/Admin/AdminLogin/admin.dart';
 import 'package:responsive_sizer/responsive_sizer.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 import '../../Utils/Constant/Constant.dart';

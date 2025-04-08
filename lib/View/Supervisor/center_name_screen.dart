@@ -2,34 +2,22 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
 import 'package:kama_app/Utils/Constant/Constant.dart';
-import 'package:kama_app/View/HomePage/apply_filter_center.dart';
-import 'package:kama_app/View/Supervisor/center_patient_name.dart';
+import 'package:kama_app/View/Admin/HomePage/apply_filter_center.dart';
 import 'package:responsive_sizer/responsive_sizer.dart';
 
 import '../../Utils/Colors/Colors.dart';
+import '../../ViewModel/AdminController/new_center_add_controller.dart';
+import '../Admin/HomePage/center_patient_name.dart';
 
 class CenterNameScreen extends StatefulWidget {
-  const CenterNameScreen({Key? key,}) : super(key: key);
-
+   CenterNameScreen({Key? key,this.title}) : super(key: key);
+String? title;
   @override
   State<CenterNameScreen> createState() => _CenterNameScreenState();
 }
 
 class _CenterNameScreenState extends State<CenterNameScreen> {
-  List<String> centerName = [
-    "Center Name",
-    "Center Name",
-    "Center Name",
-    "Center Name",
-    "Center Name",
-  ];
-  List<String> centerNumber = [
-    "175",
-    "200",
-    "500",
-    "600",
-    "120",
-  ];
+final AddNewCenterController addNewCenterController=Get.find(tag: 'addNewCenterController');
 
   @override
   Widget build(BuildContext context) {
@@ -42,7 +30,18 @@ class _CenterNameScreenState extends State<CenterNameScreen> {
                   fontFamily: MyConstants.boldFontFamily,
                   fontSize: 16,
                   color: Colors.white)),
-          centerTitle: true),
+          centerTitle: true,leading: widget.title=='viewAll'?
+        IconButton(
+          onPressed: () {
+            Get.back();
+          },
+          icon: Icon(
+            Icons.arrow_back_ios_new,
+            color: Colors.white,
+            size: 24,
+          ),
+        ):SizedBox.shrink(),
+      ),
       body: Column(children: [
         Container(
           height: 8.h,
@@ -257,55 +256,69 @@ class _CenterNameScreenState extends State<CenterNameScreen> {
             ),
           ),
         ),
-        Expanded(
-          child: InkWell(onTap: () {
-            Get.to(CenterPatientName());
-          },
-            child: ListView.builder(  padding: EdgeInsets.only(left: 3.h,right: 3.h,top: 1.h),
-                shrinkWrap: true,
-                itemCount: centerName.length,
-                itemBuilder: (BuildContext context, int index) {
-                  return Padding(
-                    padding: EdgeInsets.all(1.h),
-                    child: Container(
-                      height: 6.5.h,
-                      width: MediaQuery.of(context).size.width,
-                      decoration: BoxDecoration(
-                          boxShadow: [
-                            BoxShadow(
-                                color: CustomColors.customBlackColor
-                                    .withOpacity(0.15),
-                                blurRadius: 8,
-                                offset: const Offset(0, 1))
-                          ],
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(10)),
+        Expanded(child: StreamBuilder(
+          stream: addNewCenterController.centerData.snapshots(),
+          builder: (BuildContext context, AsyncSnapshot<dynamic> snapshot) {
+            if(snapshot.hasError){
+              return Text("Something went wrong");
+            }else if(snapshot.connectionState ==ConnectionState.waiting){
+              return Center(child: CircularProgressIndicator(backgroundColor: CustomColors.mainAppColor,));
+            }else if(!snapshot.hasData){
+              return  Text("No data found");
+            }else if(snapshot.hasData){
+              return  ListView.builder(
+                  padding: EdgeInsets.symmetric(horizontal: 3.h),
+                  physics: BouncingScrollPhysics(),
+                  shrinkWrap: true,
+                  itemCount: snapshot.data.docs.length,
+                  itemBuilder: (BuildContext context, int index) {
+
+                    return GestureDetector(onTap: () {
+                      Get.to(CenterPatientNameAdmin(centerName1: snapshot.data.docs[index]["centerName"],));
+                    },
                       child: Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 3.h),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: [
-                            Text(centerName[index],
-                                style: const TextStyle(
-                                    fontFamily: MyConstants.mediumFontFamily,
-                                    fontSize: 13,
-                                    fontWeight: FontWeight.w500,
-                                    color: CustomColors.customBlackColor)),
-                            Text(centerNumber[index],
-                                style: const TextStyle(
-                                    fontFamily: MyConstants.boldFontFamily,
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.w600,
-                                    color: CustomColors.customBlackColor)),
-                          ],
+                        padding: EdgeInsets.all(1.h),
+                        child: Container(
+                          height: 6.5.h,
+                          width: MediaQuery.of(context).size.width,
+                          decoration: BoxDecoration(
+                              boxShadow: [
+                                BoxShadow(
+                                    color: CustomColors.customBlackColor
+                                        .withOpacity(0.15),
+                                    blurRadius: 8,
+                                    offset: const Offset(0, 1))
+                              ],
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(10)),
+                          child: Padding(
+                            padding: EdgeInsets.symmetric(horizontal: 3.h),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              children: [
+                                Text(snapshot.data.docs[index]["centerName"],
+                                    style: const TextStyle(
+                                        fontFamily: MyConstants.mediumFontFamily,
+                                        fontSize: 13,
+                                        fontWeight: FontWeight.w500,
+                                        color: CustomColors.customBlackColor)),
+                                Text("",
+                                    style: const TextStyle(
+                                        fontFamily: MyConstants.boldFontFamily,
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.w600,
+                                        color: CustomColors.customBlackColor)),
+                              ],
+                            ),
+                          ),
                         ),
                       ),
-                    ),
-                  );
-                }),
-          ),
-        ),
+                    );
+                  }
+              );
+            }return Container();
+          },)),
       ]),
     );
   }

@@ -3,22 +3,72 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:kama_app/Utils/Colors/Colors.dart';
 import 'package:kama_app/Utils/Constant/Constant.dart';
-import 'package:kama_app/View/HomePage/center_screen.dart';
-import 'package:kama_app/View/HomePage/setting_screen.dart';
 import 'package:kama_app/View/Supervisor/alert_screen.dart';
-import 'package:kama_app/View/Supervisor/center_name_screen.dart';
-import 'package:kama_app/View/Supervisor/refer_other_screen.dart';
 import 'package:kama_app/View/Supervisor/refer_screen.dart';
 import 'package:kama_app/View/Supervisor/setting_supervisor_screen.dart';
 import 'package:kama_app/View/Supervisor/supervisor_home_screen.dart';
 import 'package:responsive_sizer/responsive_sizer.dart';
 
+import '../CaretakerScreens/caretaker_center_patient_name.dart';
+
 class SupervisorBottomNavigationScreen extends StatefulWidget {
   int? currentIndex;
+  final String? userName;
+  final String? Initial;
+  final String? lastPeriod;
+  final String? previousPregnancies;
+  final String? vaginalDelivery;
+  final String? maritalStatus;
+  final String? levelOfEducation;
+  final String? religionAndSourceOfIncome;
+  final String? ethnicity;
+  final String? medicalCondition;
+  final String? noOfChildrenAndYearOfDelivery;
+  final String? userId;
+  final String? userTimeStamp;
+  final String? selectedDate;
+  final String? estimatedGestationalAge;
+  final String? sFH;
+  final String? fetalHeartRate;
+  final String? weight;
+  final String? height;
+  final String? bMI;
+  final String? bP;
+  final String? urineTest;
+  final String? glucoseLevel;
+  final String? bloodLevel;
+  final String? temperature;
+  final String? tTAndiPT;
 
   SupervisorBottomNavigationScreen({
     Key? key,
     this.currentIndex,
+    this.userName,
+    this.Initial,
+    this.lastPeriod,
+    this.previousPregnancies,
+    this.vaginalDelivery,
+    this.maritalStatus,
+    this.levelOfEducation,
+    this.religionAndSourceOfIncome,
+    this.ethnicity,
+    this.medicalCondition,
+    this.noOfChildrenAndYearOfDelivery,
+    this.userId,
+    this.userTimeStamp,
+    this.selectedDate,
+    this.estimatedGestationalAge,
+    this.sFH,
+    this.fetalHeartRate,
+    this.weight,
+    this.height,
+    this.bMI,
+    this.bP,
+    this.urineTest,
+    this.glucoseLevel,
+    this.bloodLevel,
+    this.temperature,
+    this.tTAndiPT,
   }) : super(key: key);
 
   @override
@@ -29,23 +79,48 @@ class SupervisorBottomNavigationScreen extends StatefulWidget {
 class _SupervisorBottomNavigationScreenState
     extends State<SupervisorBottomNavigationScreen> {
   int currentIndex = 0;
+  late List<Widget> widgetOptions;
 
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
-    setState(() {
-      currentIndex = widget.currentIndex ?? 0;
-    });
-  }
+    currentIndex = widget.currentIndex ?? 0;
+    widgetOptions = [
+      const SupervisorHomeScreen(),
+      AlertScreen(
+        userName: widget.userName,
+        Initial: widget.Initial,
+        lastPeriod: widget.lastPeriod,
+        previousPregnancies: widget.previousPregnancies,
+        vaginalDelivery: widget.vaginalDelivery,
+        maritalStatus: widget.maritalStatus,
+        levelOfEducation: widget.levelOfEducation,
+        religionAndSourceOfIncome: widget.religionAndSourceOfIncome,
+        ethnicity: widget.ethnicity,
+        medicalCondition: widget.medicalCondition,
+        noOfChildrenAndYearOfDelivery: widget.noOfChildrenAndYearOfDelivery,
+        userId: widget.userId,
+        userTimeStamp: widget.userTimeStamp,
+        selectedDate: widget.selectedDate,
+        estimatedGestationalAge: widget.estimatedGestationalAge,
+        sFH: widget.sFH,
+        fetalHeartRate: widget.fetalHeartRate,
+        weight: widget.weight,
+        height: widget.height,
+        bMI: widget.bMI,
+        bP: widget.bP,
+        urineTest: widget.urineTest,
+        glucoseLevel: widget.glucoseLevel,
+        bloodLevel: widget.bloodLevel,
+        temperature: widget.temperature,
+        tTAndiPT: widget.tTAndiPT,
 
-  static List<Widget> widgetOptions = <Widget>[
-    const SupervisorHomeScreen(),
-    const AlertScreen(),
-    const ReferScreen(),
-    const CenterNameScreen(),
-    const SettingSupervisorScreen(),
-  ];
+      ),
+      const ReferScreen(),
+      CaretakerCenterPatientName(),
+      const SettingSupervisorScreen(),
+    ];
+  }
 
   void onTap(int index) {
     setState(() {
